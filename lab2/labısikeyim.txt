@@ -1,0 +1,154 @@
+	.text
+	.globl main
+	
+L1: la $a0, 0x00400010 # first instruction address
+L2: la $a1, 0x004000fc # last Instruction address
+
+main:  
+	add $t0, $0, $0
+	lw $t1, two
+	lw $t2, one
+	la $t3, ($a0)
+	la $t4, ($a1)
+	
+	la $a2, main
+	jal subProgram
+	
+	addi $t0, $v0, 0
+	addi $t1, $v1, 0
+	
+	la $a0, addNumber
+	li $v0, 4
+	syscall
+	
+	la $a0, ($t0)
+	li $v0, 1
+	syscall
+	
+	la $a0, endl
+	li $v0, 4
+	syscall
+	
+	la $a0, lwNumber
+	li $v0, 4
+	syscall
+
+	la $a0, ($t1)
+	li $v0, 1
+	syscall
+	
+	la $a0, endl
+	li $v0, 4
+	syscall
+	
+	la $a0, ($t3)
+	la $a1, ($t4)
+	la $a2, subProgram
+	jal subProgram
+	
+	addi $t0, $v0, 0
+	addi $t1, $v1, 0
+	
+	la $a0, addNumberSub
+	li $v0, 4
+	syscall
+	
+	la $a0, ($t0)
+	li $v0, 1
+	syscall
+	
+	la $a0, endl
+	li $v0, 4
+	syscall
+	
+	la $a0, lwNumberSub
+	li $v0, 4
+	syscall
+
+	la $a0, ($t1)
+	li $v0, 1
+	syscall
+	
+	li $v0, 10
+	syscall
+	
+
+subProgram: 
+	addi $sp, $sp, -36
+	sw $ra, 32($sp)
+	sw $s7, 28($sp)
+	sw $s6, 24($sp)
+	sw $s5, 20($sp)
+	sw $s4, 16($sp)
+	sw $s3, 12($sp)
+	sw $s2, 8($sp)
+	sw $s1, 4($sp)
+	sw $s0, 0($sp)
+	
+	la $s0, ($a2) #  instruction address of start
+	la $s2, ($a0) # $s2 = first inst address
+	la $s3, ($a1) # $s3 = last inst address
+	sub $s3, $s3, $s2 # $s2 = last - first
+	srl $s3, $s3, 2
+	addi $s2, $zero, 0
+	addi $s5, $zero, 0 
+	loop: 
+		slt $s1, $s2, $s3 # first < last
+		beq $s1, $0, done
+		sll $s1, $s2, 2 # i * 4
+		add $s1, $s1, $s0 # address starts from main
+		lw  $s1, 0($s1) # getting instruction
+		move $s4, $s1 # copying $s1
+		addCheck:
+			move $s5, $s4
+			move $a2, $s4
+			srl $a2, $a2, 26
+			sll $s5, $s5, 26
+			srl $s5, $s5, 26
+			add $s5, $s5, $a2
+			beq $s5, 32, addCounter
+			j 	lwCheck
+		lwCheck:
+			move $s5, $s4
+			srl $s5, $s5, 26
+			beq $s5, 35, lwCounter
+			j 	back
+		back:
+			addi  $s2, $s2, 1
+			j 	loop
+		done:
+			addi $v0, $s6, 0 # add
+			addi $v1, $s7, 0 # lw
+			lw $ra, 32($sp)
+			lw $s7, 28($sp)
+			lw $s6, 24($sp)
+			lw $s5, 20($sp)
+			lw $s4, 16($sp)
+			lw $s3, 12($sp)
+			lw $s2, 8($sp)
+			lw $s1, 4($sp)
+			lw $s0, 0($sp)
+			addi $sp, $sp, 36
+			jr 	$ra
+		addCounter:
+			addi $s6, $s6, 1
+			j 	lwCheck
+			
+		lwCounter:
+			addi $s7, $s7, 1
+			j	back
+	.data 
+endl: .asciiz "\n"
+addNumber: .asciiz "The number of add instruction in main: "
+lwNumber: .asciiz "The number of lw instruction in main: "
+addNumberSub: .asciiz "The number of add instruction in sub: "
+lwNumberSub: .asciiz "The number of lw instruction in sub: "
+one: .word 1
+two: .word 2
+three: .word 3	
+	
+	
+	
+
+
+	

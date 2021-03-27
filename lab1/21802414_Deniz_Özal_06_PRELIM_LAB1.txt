@@ -1,0 +1,116 @@
+CS224
+Lab 1
+Section 06
+Deniz Semih Özal
+21802414
+*******************************************
+*******************************************
+#Part A
+#Calculating an arithmetic expression in MIPS: Write a program to evaluate the following expression given below (all numbers are integers):
+# x= a * (b - c) % d	
+	.text
+	.globl __start
+__start:
+	la $a0, input
+	li $v0, 4
+	syscall
+	
+	li $v0, 5
+	syscall
+	add $t0, $0, $v0 # $t0 = a
+	
+	li $v0, 5
+	syscall
+	add $t1, $0, $v0 # t1 = b
+	
+	li $v0, 5
+	syscall
+	add $t2, $0, $v0 # t2 = c
+	
+	li $v0, 5
+	syscall
+	add $t3, $0, $v0 #  t3 = d
+	
+	sub $s1, $t1, $t2 # $s1 = b - c
+	mult $t0, $s1 # a * (b - c)
+	mfhi $t4
+	mflo $t5
+	div $t4, $t3 # [a * (b - c)] % d -> high
+	mfhi $s2 # x (high)
+	div $t5, $t3 # [a * (b - c)] % d -> low
+	mfhi $s3 # x (low)
+
+	la $a0, open 
+	li $v0, 4
+	syscall
+	
+	la $a0, ($s2)
+	li $v0, 1
+	syscall
+	
+	la $a0, comma
+	li $v0, 4
+	syscall
+	
+	la $a0, ($s3)
+	li $v0, 1
+	syscall
+	
+	la $a0, close
+	li $v0, 4
+	syscall
+	
+	.data
+input: .asciiz "Please enter a,b,c,d respectively:\n"
+open: .asciiz "{"
+comma: .asciiz ","
+close: .asciiz "}"
+
+*******************************************
+*******************************************
+
+
+#Part B
+#Define an array and state its size in a separate variable and test if it is a symmetric array. Di
+#Display array elements and print a message such as "The above array is symmetric". 
+#If not symmetric "The above array is not symmetric". For array declaration and for declaring its size you may use lines similar to the following.
+# By changing these declarations you may use your program with different arrays.
+	.text
+	.globl __start
+__start:
+	la	$t0, array # base adress of an array
+	addi 	$s2, $0, 0 # i = 0
+	lw	$s1, arrsize
+	addi 	$s1, $s1, -1 # arrsize - 1
+	
+for:
+	slt 	$t1, $s2, $s1 # i <  arrsize - 1
+	beq 	$t1, $0, symmetric # jumps if symmetric
+	sll 	$t1, $s2, 2 # $t1 = i * 4
+	add 	$t1, $t1, $t0 # address of array[i]
+	lw 	$t2, 0($t1)# $ t2 = array[i]
+	sll 	$t3, $s1, 2 # t3 = (arrsize - 1) * 4
+	add 	$t3, $t3, $t0 # adress of array[arrsize - 1]
+	lw 	$t4, 0($t3) # $t4 = array[arrsize - 1]
+	bne 	$t2, $t4, not_symmetric # jumps if notsymmetric
+	addi 	$s2, $s2, 1 # i = i + 1
+	addi 	$s1, $s1, -1 # arrsize = arrsize - 1
+	j 	for
+symmetric:
+	la 	$a0, array_sym
+	li 	$v0, 4
+	syscall
+	li 	$v0, 10
+	syscall
+not_symmetric:
+	la 	$a0, array_nsym
+	li 	$v0, 4
+	syscall
+	li 	$v0, 10
+	syscall	
+	
+	.data
+arrsize: .word 3
+array:	.word	10, 20, 10
+array_sym: .asciiz "The above array is symmetric"
+array_nsym: .asciiz "The above array is not symmetric" 
